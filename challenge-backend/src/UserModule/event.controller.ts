@@ -7,12 +7,16 @@ import { EventDto } from './eventDto';
 export class EventController {
   constructor(private eventService: EventService) {}
   @Get()
-  getEvents(@Query('username') username: string) {
-    // return this.eventService.getEvents(username);
-    return 'hello world';
+  sayHello() {
+    return 'You have successfully connected';
   }
 
-  @Post()
+  @Get('content')
+  getEvents(@Query('username') username: string) {
+    return this.eventService.getEvents(username);
+  }
+
+  @Post('content')
   createEvent(@Body() reqBody: EventDto) {
     return this.eventService.create(reqBody);
   }
