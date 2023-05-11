@@ -12,8 +12,8 @@ export class EcsFargateClient {
   private vpc: Vpc;
   private loadBalancer: ApplicationLoadBalancer;
   constructor(private scope: Construct) {
-    this.vpc = new Vpc(scope, "challengeVpc", {
-      maxAzs: 1,
+    this.vpc = new Vpc(scope, "elbFargateServiceVpc", {
+      maxAzs: 2,
       subnetConfiguration: [
         { name: "ElbFargateServicePublic", subnetType: SubnetType.PUBLIC },
         {
