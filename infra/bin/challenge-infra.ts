@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
-import { CloudChallengeStack } from "../lib/cloudChallenge-infra-stack";
+import { ElbFargateStack } from "../lib/elbFargateStack";
 
 const app = new cdk.App();
-new CloudChallengeStack(app, "CloudChallengeStack", {
-  stackName: "CloudChallengeStack",
+new ElbFargateStack(app, "ElbFargateStack", {
+  stackName: "ElbFargateStack",
 });

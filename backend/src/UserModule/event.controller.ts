@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 
 import { EventService } from './event.service';
-import { EventDto } from './eventDto';
+
 
 @Controller()
 export class EventController {
@@ -11,13 +11,13 @@ export class EventController {
     return 'You have successfully connected';
   }
 
-  @Get('content')
-  getEvents(@Query('username') username: string) {
-    return this.eventService.getEvents(username);
+  @Get('name')
+  getUser(@Query('username') username: string) {
+    return this.eventService.getName(username);
   }
 
-  @Post('content')
-  createEvent(@Body() reqBody: EventDto) {
-    return this.eventService.create(reqBody);
+  @Post('name')
+  createEvent(@Body() reqBody: {name:string}) {
+    return this.eventService.createName(reqBody);
   }
 }
