@@ -1,4 +1,5 @@
 import { aws_ec2 } from "aws-cdk-lib";
+import { Certificate, ICertificate } from "aws-cdk-lib/aws-certificatemanager";
 
 import { SubnetType, Vpc } from "aws-cdk-lib/aws-ec2";
 import {
@@ -18,6 +19,7 @@ export class EcsFargateClient {
   private fargateServiceTwo: FargateService;
   private logGroupForServiceOne: LogGroup;
   private logGroupForServiceTwo: LogGroup;
+  private cert: ICertificate;
   private vpc: Vpc;
   constructor(private scope: Construct) {
     this.vpc = new Vpc(scope, "elbFargateServiceVpc", {
@@ -30,6 +32,11 @@ export class EcsFargateClient {
         },
       ],
     });
+    this.cert = Certificate.fromCertificateArn(
+      scope,
+      "cert",
+      "arn:aws:acm:eu-central-1:637964105287:certificate/4839eb5c-4da6-459c-a38a-199067ba778a"
+    );
     this.logGroupForServiceOne = new LogGroup(scope, "LogGroupForServiceOne", {
       logGroupName: "LogGroupForServiceOne",
     });
@@ -44,9 +51,10 @@ export class EcsFargateClient {
         taskSubnets: { subnetType: SubnetType.PRIVATE_WITH_EGRESS },
         publicLoadBalancer: true,
         desiredCount: 1,
+        certificate: this.cert,
         taskImageOptions: {
           containerName: "backendContainer",
-          containerPort: 80,
+          containerPort: 443,
           image: ContainerImage.fromAsset(path.resolve("..", "backend")),
           logDriver: LogDrivers.awsLogs({
             streamPrefix: "Service1",
@@ -64,7 +72,7 @@ export class EcsFargateClient {
     const task2Container = taskDefiniton2.addContainer("backend2Container", {
       containerName: "backend2Container",
       image: ContainerImage.fromAsset(path.resolve("..", "backend-2")),
-      portMappings: [{ containerPort: 80 }],
+      portMappings: [{ containerPort: 443 }],
       logging: LogDrivers.awsLogs({
         streamPrefix: "Service2",
         logGroup: this.logGroupForServiceTwo,
@@ -79,13 +87,13 @@ export class EcsFargateClient {
     });
     this.fargateServiceTwo.connections.allowFrom(
       this.fargateServiceOne.loadBalancer,
-      aws_ec2.Port.tcp(80)
+      aws_ec2.Port.tcp(443)
     );
     this.fargateServiceOne.loadBalancer.listeners[0].addTargets(
       "secondServiceTarget",
       {
         targets: [this.fargateServiceTwo],
-        port: 80,
+        port: 443,
         conditions: [ListenerCondition.pathPatterns(["/content"])],
         priority: 100,
       }
