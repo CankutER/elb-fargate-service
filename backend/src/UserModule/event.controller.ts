@@ -13,6 +13,13 @@ export class EventController {
 
   @Get('name')
   getUser(@Query('username') username: string) {
+    try {
+      if (!Math.floor(Math.random() * 2)) {
+        throw 'dummy error message for cloudwatch logs';
+      }
+    } catch (err) {
+      console.log(err);
+    }
     return this.eventService.getName(username);
   }
 
