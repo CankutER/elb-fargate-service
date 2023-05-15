@@ -9,16 +9,20 @@ import {
   LogDrivers,
 } from "aws-cdk-lib/aws-ecs";
 import { ApplicationLoadBalancedFargateService } from "aws-cdk-lib/aws-ecs-patterns";
-import { ListenerCondition } from "aws-cdk-lib/aws-elasticloadbalancingv2";
-import { LogGroup } from "aws-cdk-lib/aws-logs";
+import {
+  ApplicationProtocol,
+  ListenerCertificate,
+  ListenerCondition,
+} from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import { ILogGroup, LogGroup } from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 import path = require("path");
 
 export class EcsFargateClient {
   private fargateServiceOne: ApplicationLoadBalancedFargateService;
   private fargateServiceTwo: FargateService;
-  private logGroupForServiceOne: LogGroup;
-  private logGroupForServiceTwo: LogGroup;
+  private logGroupForServiceOne: ILogGroup;
+  private logGroupForServiceTwo: ILogGroup;
   private cert: ICertificate;
   private vpc: Vpc;
   constructor(private scope: Construct) {
@@ -37,12 +41,16 @@ export class EcsFargateClient {
       "cert",
       "arn:aws:acm:eu-central-1:637964105287:certificate/4839eb5c-4da6-459c-a38a-199067ba778a"
     );
-    this.logGroupForServiceOne = new LogGroup(scope, "LogGroupForServiceOne", {
-      logGroupName: "LogGroupForServiceOne",
-    });
-    this.logGroupForServiceTwo = new LogGroup(scope, "LogGroupForServiceTwo", {
-      logGroupName: "LogGroupForServiceTwo",
-    });
+    this.logGroupForServiceOne = LogGroup.fromLogGroupName(
+      scope,
+      "LogGroupForServiceOne",
+      "LogGroupForServiceOne"
+    );
+    this.logGroupForServiceTwo = LogGroup.fromLogGroupName(
+      scope,
+      "LogGroupForServiceTwo",
+      "LogGroupForServiceTwo"
+    );
     this.fargateServiceOne = new ApplicationLoadBalancedFargateService(
       scope,
       "fargateServiceOne",
@@ -93,7 +101,7 @@ export class EcsFargateClient {
       "secondServiceTarget",
       {
         targets: [this.fargateServiceTwo],
-        port: 443,
+        port: 80,
         conditions: [ListenerCondition.pathPatterns(["/content"])],
         priority: 100,
       }
