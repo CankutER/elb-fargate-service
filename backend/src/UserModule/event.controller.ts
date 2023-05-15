@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 
 import { EventService } from './event.service';
-
+import { log } from 'console';
 
 @Controller()
 export class EventController {
@@ -17,7 +17,7 @@ export class EventController {
   }
 
   @Post('name')
-  createEvent(@Body() reqBody: {name:string}) {
+  createEvent(@Body() reqBody: { name: string }) {
     return this.eventService.createName(reqBody);
   }
 }

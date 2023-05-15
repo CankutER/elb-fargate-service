@@ -12,6 +12,13 @@ export class EventController {
   }
   @Get('content')
   getUser() {
+    try {
+      if (!Math.floor(Math.random() * 2)) {
+        throw 'dummy error message for cloudwatch logs';
+      }
+    } catch (err) {
+      console.log(err);
+    }
     return this.eventService.getContent();
   }
 

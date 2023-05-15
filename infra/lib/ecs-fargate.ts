@@ -1,4 +1,4 @@
-import { CfnOutput, aws_ec2 } from "aws-cdk-lib";
+import { aws_ec2 } from "aws-cdk-lib";
 
 import { SubnetType, Vpc } from "aws-cdk-lib/aws-ec2";
 import {
@@ -8,19 +8,16 @@ import {
   LogDrivers,
 } from "aws-cdk-lib/aws-ecs";
 import { ApplicationLoadBalancedFargateService } from "aws-cdk-lib/aws-ecs-patterns";
-import {
-  ApplicationLoadBalancer,
-  CfnTargetGroup,
-  ListenerAction,
-  ListenerCondition,
-  TargetGroupBase,
-} from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import { ListenerCondition } from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import { LogGroup } from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 import path = require("path");
 
 export class EcsFargateClient {
   private fargateServiceOne: ApplicationLoadBalancedFargateService;
   private fargateServiceTwo: FargateService;
+  private logGroupForServiceOne: LogGroup;
+  private logGroupForServiceTwo: LogGroup;
   private vpc: Vpc;
   constructor(private scope: Construct) {
     this.vpc = new Vpc(scope, "elbFargateServiceVpc", {
@@ -33,7 +30,12 @@ export class EcsFargateClient {
         },
       ],
     });
-
+    this.logGroupForServiceOne = new LogGroup(scope, "LogGroupForServiceOne", {
+      logGroupName: "LogGroupForServiceOne",
+    });
+    this.logGroupForServiceTwo = new LogGroup(scope, "LogGroupForServiceTwo", {
+      logGroupName: "LogGroupForServiceTwo",
+    });
     this.fargateServiceOne = new ApplicationLoadBalancedFargateService(
       scope,
       "fargateServiceOne",
@@ -46,6 +48,10 @@ export class EcsFargateClient {
           containerName: "backendContainer",
           containerPort: 80,
           image: ContainerImage.fromAsset(path.resolve("..", "backend")),
+          logDriver: LogDrivers.awsLogs({
+            streamPrefix: "Service1",
+            logGroup: this.logGroupForServiceOne,
+          }),
         },
       }
     );
@@ -59,7 +65,10 @@ export class EcsFargateClient {
       containerName: "backend2Container",
       image: ContainerImage.fromAsset(path.resolve("..", "backend-2")),
       portMappings: [{ containerPort: 80 }],
-      logging: LogDrivers.awsLogs({ streamPrefix: "service2" }),
+      logging: LogDrivers.awsLogs({
+        streamPrefix: "Service2",
+        logGroup: this.logGroupForServiceTwo,
+      }),
     });
 
     this.fargateServiceTwo = new FargateService(scope, "fargateServiceTwo", {
